@@ -69,6 +69,7 @@ int main(int argc, char *argv[]) {
   char *capbuffer;
   int16_t *scapbuffer;
   char *capdev = "default";
+  char *pidpath = "/var/run/cpiped.pid";
   char *fifonam;
   struct stat status;
   int readbytes = 0;
@@ -111,10 +112,13 @@ int main(int argc, char *argv[]) {
   signal(SIGTERM, myterm);
 
   // Process command-line options and arguments
-  while ((opt = getopt(argc, argv, "d:b:s:e:t:D")) != -1) {
+  while ((opt = getopt(argc, argv, "d:p:b:s:e:t:D")) != -1) {
     switch (opt) {
     case 'd':
       capdev = optarg;
+      break;
+    case 'p':
+      pidpath = optarg;
       break;
     case 'b':
       bufsize = atof(optarg) * val * 8;
@@ -162,6 +166,7 @@ int main(int argc, char *argv[]) {
       "[-e arg] [-t arg] [-D] FIFO\n"
       " -d : ALSA capture device ['default']\n"
       " -b : target buffer in seconds [.5]\n"
+      " -p : path to pidfile [/var/run/cpiped.pid]\n"
       " -s : command to run when sound detected\n"
       " -e : command to run when silence detected\n"
       " -t : silence threshold (1 - 32767, [100])\n"
@@ -199,7 +204,7 @@ int main(int argc, char *argv[]) {
   }
 
   // Write the pidfile
-  sprintf(pidfile, "/var/run/cpiped.pid");
+  sprintf(pidfile, pidpath);
   sprintf(pidstr, "%d\n", getpid());
   pidfd = open(pidfile, O_RDWR|O_CREAT, 0644);
   write(pidfd, pidstr, strlen(pidstr));
